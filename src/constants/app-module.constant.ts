@@ -2,7 +2,7 @@ import appConfig from 'src/config/app.config';
 import authConfig from 'src/config/auth.config';
 import Joi from 'joi';
 import { ConfigModuleOptions } from '@nestjs/config';
-
+// env
 const validationSchema: ConfigModuleOptions['validationSchema'] = Joi.object({
   NODE_ENV: Joi.string()
     .valid('development', 'production', 'test', 'provision')
