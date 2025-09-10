@@ -1,157 +1,129 @@
 ---
 
-# JobSeekerPortal – NestJS + Knex + MySQL
+# JobSeekerPortal – ( ENV Config + Db Config Flow ) NestJS + TypeORM + MySQL
 
-## 📌 Overview
+## Overview
 
-This project uses **NestJS**, **Knex.js**, and **MySQL** with a **database-first approach**.
-Configuration is handled via `@nestjs/config`, which loads environment variables from `.env` files or OS shell exports.
-
----
-
-## ⚙️ Environment Configuration Flow
-
-1. **Env Files (`development.env`, `production.env`, etc.)**
-
-   * Contain database credentials and app settings.
-   * Example `development.env`:
-
-     ```env
-     MYSQL_DB_HOST=localhost
-     MYSQL_DB_PORT=3306
-     MYSQL_DB_USERNAME=root
-     MYSQL_DB_PASSWORD=secret
-     MYSQL_DB_NAME=job_portal
-     ```
-
-2. **ConfigModule Setup (`app.module.ts`)**
-
-   * Loads env file and registers configs globally.
-
-   ```ts
-   @Module({
-     imports: [
-       ConfigModule.forRoot({
-         isGlobal: true,
-         envFilePath: 'development.env',
-         load: [databaseConfig],
-       }),
-     ],
-   })
-   export class AppModule {}
-   ```
-
-3. **Database Config (`database.config.ts`)**
-
-   * Defines how environment variables are mapped to database settings.
-   * Uses `registerAs` for type-safe, namespaced configs.
-
-   ```ts
-   import { registerAs } from '@nestjs/config';
-
-   export default registerAs('database', () => ({
-     mysql: {
-       host: process.env.MYSQL_DB_HOST,
-       port: parseInt(process.env.MYSQL_DB_PORT as string, 10) || 3306,
-       username: process.env.MYSQL_DB_USERNAME,
-       password: process.env.MYSQL_DB_PASSWORD,
-       database: process.env.MYSQL_DB_NAME,
-     },
-   }));
-   ```
-
-4. **Service/Provider Usage**
-
-   * Inject config where needed instead of using `process.env` directly.
-   * Example:
-
-     ```ts
-     import { Injectable, Inject } from '@nestjs/common';
-     import { ConfigType } from '@nestjs/config';
-     import databaseConfig from './config/database.config';
-
-     @Injectable()
-     export class DbService {
-       constructor(
-         @Inject(databaseConfig.KEY)
-         private dbConfig: ConfigType<typeof databaseConfig>,
-       ) {}
-
-       getDbHost() {
-         return this.dbConfig.mysql.host; // → "localhost"
-       }
-     }
-     ```
-
-5. **Knex Provider**
-
-   * Uses injected config to create a MySQL connection pool.
-
-   ```ts
-   import { Provider } from '@nestjs/common';
-   import { Knex, knex } from 'knex';
-   import databaseConfig from './config/database.config';
-   import { ConfigType } from '@nestjs/config';
-
-   export const KNEX_CONNECTION = 'KNEX_CONNECTION';
-
-   export const DbProvider: Provider = {
-     provide: KNEX_CONNECTION,
-     inject: [databaseConfig.KEY],
-     useFactory: (dbConfig: ConfigType<typeof databaseConfig>) => {
-       return knex({
-         client: 'mysql2',
-         connection: {
-           host: dbConfig.mysql.host,
-           port: dbConfig.mysql.port,
-           user: dbConfig.mysql.username,
-           password: dbConfig.mysql.password,
-           database: dbConfig.mysql.database,
-         },
-       });
-     },
-   };
-   ```
+NestJS app using **TypeORM** and **MySQL**.
+Env/config setup is **modular**, with global configs (`appConfig`, `authConfig`) and module-specific configs (e.g., `databaseConfig`) loaded only where needed.
 
 ---
 
-## 🔄 Flow Summary
+## Environment & Config
 
-1. **Runtime loads env file** (`development.env`).
-2. **ConfigModule** injects variables into `process.env`.
-3. **database.config.ts** maps `process.env` → `database.mysql` config.
-4. **DbProvider** builds Knex instance using injected config.
-5. **Services/Controllers** use `KNEX_CONNECTION` or `ConfigService` to query DB.
+### 1. Env Files
 
----
+Define your environment in files like:
 
-## 🛠 Switching Environments
-
-* Use different env files:
-
-  * `development.env`
-  * `production.env`
-  * `test.env`
-
-* Switch automatically with `NODE_ENV`:
-
-  ```ts
-  ConfigModule.forRoot({
-    isGlobal: true,
-    envFilePath: `${process.env.NODE_ENV}.env`,
-    load: [databaseConfig],
-  });
-  ```
-
-Run like:
-
-```bash
-NODE_ENV=development npm run start:dev
-NODE_ENV=production npm run start:prod
+```env
+# development.env
+NODE_ENV=development
+APP_NAME=JobSeekerPortal
+APP_PORT=4000
+APP_PREFIX=api
+APP_VERSION=1.0.0
+APP_URL=jobseekerportal.com
+SUPPORT_EMAIL=support@${APP_URL}
+MYSQL_DB_HOST=localhost
+MYSQL_DB_PORT=3306
+MYSQL_DB_USERNAME=root
+MYSQL_DB_PASSWORD=
+MYSQL_DB_NAME=JobFinderPortal_db
 ```
 
+### 2. Global Config (`CONFIG_MODULE_SETTINGS`)
+
+```ts
+import appConfig from 'src/config/app.config';
+import authConfig from 'src/config/auth.config';
+import Joi from 'joi';
+import { ConfigModuleOptions } from '@nestjs/config';
+
+const validationSchema: ConfigModuleOptions['validationSchema'] = Joi.object({
+  NODE_ENV: Joi.string().valid('development','production','test','provision').default('development'),
+  APP_NAME: Joi.string().required().default('JobSeekerPortal'),
+  APP_PORT: Joi.number().port().default(3000),
+  APP_PREFIX: Joi.string().required(),
+  APP_VERSION: Joi.string().required(),
+  MYSQL_DB_HOST: Joi.string().required(),
+  MYSQL_DB_PORT: Joi.number().required(),
+  MYSQL_DB_USERNAME: Joi.string().required(),
+  MYSQL_DB_PASSWORD: Joi.string().allow('').optional(),
+  MYSQL_DB_NAME: Joi.string().required(),
+});
+
+export const CONFIG_MODULE_SETTINGS: ConfigModuleOptions = {
+  isGlobal: true,
+  validationSchema: validationSchema as Joi.ObjectSchema,
+  validationOptions: { allowUnknown: false, abortEarly: true },
+  expandVariables: true, // allows e.g., SUPPORT_EMAIL=support@${APP_URL}
+  envFilePath: `${process.env.NODE_ENV}.env`, // loads env based on NODE_ENV
+  load: [appConfig, authConfig], // global configs
+};
+```
+
+* **Global configs** (`appConfig`, `authConfig`) → available app-wide.
+* **Module-specific configs** (`databaseConfig`) → use `ConfigModule.forFeature()` inside relevant modules.
+
 ---
 
-✅ With this setup, your app cleanly separates **env variables → config mapping → providers → services**.
+### 3. TypeORM Data Source (`data-source.ts`)
+
+```ts
+import { ConfigModule, ConfigType } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import databaseConfig from 'src/config/database.config';
+// You can define multiple data sources and switch or modify them whenever needed
+const MySql_TypeOrm = TypeOrmModule.forRootAsync({
+  imports: [ConfigModule.forFeature(databaseConfig)],
+  inject: [databaseConfig.KEY],
+  useFactory: (config: ConfigType<typeof databaseConfig>) => ({
+    type: 'mysql',
+    host: config.mysql.host,
+    port: config.mysql.port,
+    username: config.mysql.username,
+    password: config.mysql.password,
+    database: config.mysql.name,
+    entities: [`${__dirname}/entities/*.entity.ts`],
+    synchronize: true, // disable in production
+  }),
+});
+
+const DataSource = MySql_TypeOrm;
+export default DataSource;
+```
+
+* Flexible: can define **multiple DB sources** and switch whenever needed.
 
 ---
+
+## Usage in App Module
+
+```ts
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { CONFIG_MODULE_SETTINGS } from './constants/app-module.constant';
+import DataSource from './database/data-source';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+
+@Module({
+  imports: [ConfigModule.forRoot(CONFIG_MODULE_SETTINGS), DataSource],
+  controllers: [AppController],
+  providers: [AppService],
+})
+export class AppModule {}
+```
+
+* 2/3 configs are global; DB config is only imported where needed.
+
+---
+
+## Summary
+
+* **Env → Global Config → Module Config → TypeORM**.
+* Type-safe, modular, and ready for multiple data sources.
+* Switch envs easily using `NODE_ENV=development|production|test npm run start`.
+
+---
+
