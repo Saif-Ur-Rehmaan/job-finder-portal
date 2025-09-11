@@ -6,13 +6,9 @@ Most comments were written with GPT’s help — I explained what they should de
 
 For full details of the database schema, see [database.md](./docs/database-config.md).
 
-
-Perfect 👍 got it.
-Here’s how you can mirror that style in your **main `README.md`**:
-
+ 
 ## 📘 Database helper & Migrations
 
 For a detailed explanation of how migrations work with `DatabaseHelper`,
 see [database-migrations-helpers.md](./docs/database-migrations-helpers.md).
-
-```
+ 
