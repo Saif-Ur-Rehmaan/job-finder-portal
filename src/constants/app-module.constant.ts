@@ -18,7 +18,7 @@ const validationSchema: ConfigModuleOptions['validationSchema'] = Joi.object({
   MYSQL_DB_NAME: Joi.string().required(),
 });
 const validateOptions: ConfigModuleOptions['validationOptions'] = {
-  allowUnknown: false,
+  allowUnknown: true,
   abortEarly: true,
 };
 const CONFIG_MODULE_SETTINGS: ConfigModuleOptions = {
