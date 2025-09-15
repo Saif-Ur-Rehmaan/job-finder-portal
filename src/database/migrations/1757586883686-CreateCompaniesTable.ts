@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
-import { DatabaseHelper } from '../databaseHelper';
+import { DatabaseHelper } from '../../app/helpers/databaseHelper';
 import { Company } from '../entities/company.entity';
 
 export class CreateCompaniesTable1757586883686 implements MigrationInterface {

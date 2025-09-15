@@ -1,6 +1,6 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 import { User } from '../entities/user.entity';
-import { DatabaseHelper } from '../databaseHelper';
+import { DatabaseHelper } from '../../app/helpers/databaseHelper';
 
 export class CreateUsersTable1757586860099 implements MigrationInterface {
   private tableName = 'users';

@@ -1,12 +1,11 @@
 ## Start Project
 
-- windows powershell: `$env:NODE_ENV="development" && npx run start:dev`
-- windows cmd: `set NODE_ENV="development" && npx run start:dev`
+- windows powershell: `$env:NODE_ENV="development"; npx nest start --watch`
 - windows cmd: `set NODE_ENV="development" && npx run start:dev`
 
-## run migration
-
-`npx typeorm-ts-node-commonjs migration:run -d ./src/database/data-source.ts`
+## Migration
+create : `npx typeorm migration:create ./src/database/migrations/<MIGRATION_NAME>.ts`
+run `npx typeorm-ts-node-commonjs migration:run -d ./src/database/data-source.ts`
 
 ## Notes on Comments and Docs
 

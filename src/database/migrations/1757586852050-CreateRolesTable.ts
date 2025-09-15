@@ -1,5 +1,5 @@
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
-import { DatabaseHelper } from '../databaseHelper';
+import { DatabaseHelper } from '../../app/helpers/databaseHelper';
 import { Role } from '../entities/role.entity';
 
 export class CreateRolesTable1757586852050 implements MigrationInterface {

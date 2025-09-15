@@ -15,8 +15,8 @@ const MySql_TypeOrm = TypeOrmModule.forRootAsync({
     username: config.mysql.username,
     password: config.mysql.password,
     synchronize: false,
-    entities: [`${__dirname}/entities/*.entity.ts`],
-    migrations: [`${__dirname}/migrations/*.ts`],
+    autoLoadEntities: true,
+    // entities: [`${__dirname}/entities/*.entity.ts`],
   }),
 });
 export { MySql_TypeOrm };
