@@ -4,7 +4,7 @@ import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
 
 import { CONFIG_MODULE_SETTINGS } from './constants/app-module.constant';
-import { MySql_TypeOrm } from './database/data-source';
+import { MySql_TypeOrm } from './database/typrorm-source';
 
 @Module({
   imports: [ConfigModule.forRoot(CONFIG_MODULE_SETTINGS), MySql_TypeOrm],

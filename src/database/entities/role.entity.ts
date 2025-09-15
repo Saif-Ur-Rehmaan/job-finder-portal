@@ -6,7 +6,7 @@ export class Role {
   @PrimaryGeneratedColumn()
   public id: number;
 
-  @Column({ type: 'string' })
+  @Column({ type: 'varchar', length: 255 })
   public name: string;
   @OneToMany(() => User, (user) => user.role)
   public users: User[];

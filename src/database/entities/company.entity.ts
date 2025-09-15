@@ -5,7 +5,7 @@ import { Job } from './Job.entity';
 export class Company {
   @PrimaryGeneratedColumn()
   public id: number;
-  @Column({ type: 'string' })
+  @Column({ type: 'varchar', length: 255 })
   public name: string;
   @Column({ type: 'text', nullable: true })
   public website?: string;

@@ -1,15 +1,15 @@
-import { DataSource, EntityMetadata, EntityTarget, TableColumn } from 'typeorm';
-import { MySql_DataSource } from './data-source';
+import {
+  EntityMetadata,
+  EntityTarget,
+  TableColumn,
+  QueryRunner,
+} from 'typeorm';
 export class DatabaseHelper {
-  private static dataSource: DataSource = MySql_DataSource;
-  private static async initDataSource(): Promise<DataSource> {
-    if (!this.dataSource || !this.dataSource.isInitialized) {
-      await this.dataSource.initialize();
-    }
-    return this.dataSource;
-  }
-  public static async getDBTableColumns<T>(entity: EntityTarget<T>) {
-    const ds = await this.initDataSource();
+  public static getDBTableColumns<T>(
+    entity: EntityTarget<T>,
+    queryRunner: QueryRunner,
+  ) {
+    const ds = queryRunner.connection;
     const metaData: EntityMetadata = ds.getMetadata(entity);
     const isUnique = (colName: string): boolean => {
       return metaData.uniques.some(
@@ -20,7 +20,7 @@ export class DatabaseHelper {
       (column): TableColumn =>
         new TableColumn({
           name: column.databaseName,
-          type: column.type as TableColumn['type'],
+          type: DatabaseHelper.normalizedType(column.type),
           isNullable: column.isNullable,
           isGenerated: column.isGenerated,
           isPrimary: column.isPrimary,
@@ -32,5 +32,34 @@ export class DatabaseHelper {
         }),
     );
     return tableColumns;
+  }
+  static normalizedType(type: unknown): string {
+    let columnType: string;
+
+    if (typeof type === 'string') {
+      columnType = type;
+    } else {
+      columnType = 'varchar';
+    }
+    if (typeof type === 'function') {
+      switch (type) {
+        case Number:
+          columnType = 'int';
+          break;
+        case String:
+          columnType = 'varchar';
+          break;
+        case Date:
+          columnType = 'datetime';
+          break;
+        case Boolean:
+          columnType = 'tinyint';
+          break;
+        default:
+          columnType = 'varchar'; // fallback
+      }
+      // map function constructors to SQL types
+    }
+    return columnType;
   }
 }

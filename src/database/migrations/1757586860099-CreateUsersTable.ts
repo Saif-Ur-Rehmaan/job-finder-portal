@@ -8,7 +8,7 @@ export class CreateUsersTable1757586860099 implements MigrationInterface {
     await queryRunner.createTable(
       new Table({
         name: this.tableName,
-        columns: await DatabaseHelper.getDBTableColumns<User>(User),
+        columns: DatabaseHelper.getDBTableColumns<User>(User, queryRunner),
       }),
     );
   }

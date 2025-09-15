@@ -8,7 +8,7 @@ export class CreateRolesTable1757586852050 implements MigrationInterface {
     await queryRunner.createTable(
       new Table({
         name: this.tableName,
-        columns: await DatabaseHelper.getDBTableColumns<Role>(Role),
+        columns: DatabaseHelper.getDBTableColumns<Role>(Role, queryRunner),
       }),
     );
   }

@@ -8,7 +8,7 @@ export class CreateJobssTable1757586916584 implements MigrationInterface {
     await queryRunner.createTable(
       new Table({
         name: this.tableName,
-        columns: await DatabaseHelper.getDBTableColumns<Job>(Job),
+        columns: DatabaseHelper.getDBTableColumns<Job>(Job, queryRunner),
       }),
     );
   }

@@ -8,7 +8,10 @@ export class CreateCompaniesTable1757586883686 implements MigrationInterface {
     await queryRunner.createTable(
       new Table({
         name: this.tableName,
-        columns: await DatabaseHelper.getDBTableColumns<Company>(Company),
+        columns: DatabaseHelper.getDBTableColumns<Company>(
+          Company,
+          queryRunner,
+        ),
       }),
     );
   }
